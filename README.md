@@ -1,5 +1,5 @@
 
-## rsyslog repeater. 
+## rsyslog journald repeater. 
 
 Listens to incoming syslog messages and replays these messages to the systemd journald.
 
