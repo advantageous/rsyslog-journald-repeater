@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+source ~/.bash_profile
+
+export GOPATH=/gopath
 
 rm rsyslog-journald-repeater_linux
 
