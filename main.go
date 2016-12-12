@@ -36,8 +36,6 @@ func main() {
 	host := flag.String("host", "0.0.0.0", "hostname to listen on")
 	port := flag.Int("port", defaultPort, "port to listen on")
 	debug := flag.Bool("debug", false, "debug flag")
-
-
 	flag.Parse()
 
 	server := syslog.NewServer()

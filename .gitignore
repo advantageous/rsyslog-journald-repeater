@@ -6,3 +6,5 @@
 rsyslog-journald-repeater.iml
 
 rsyslog-journald-repeater
+
+bin/packer/ec2_env.sh

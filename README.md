@@ -17,3 +17,10 @@ Usage of ./rsyslog-journald-repeater:
 ```
 
 
+#### Testing
+```bash
+$ logger -d -p err  -n localhost  -P 514 -i foo -t centos  "MESSAGE3 FROM LOGGER OVER PORT 514" 
+$ journalctl -n 1
+-- Logs begin at Mon 2016-12-12 21:39:05 UTC, end at Mon 2016-12-12 21:51:12 UTC. --
+Dec 12 21:51:12 fb765a1a956a foo[31]: MESSAGE3 FROM LOGGER OVER PORT 514
+```

@@ -1,0 +1,21 @@
+[Unit]
+Description=rsyslog-journald-repeater
+Wants=basic.target
+After=basic.target network.target
+
+[Service]
+User=centos
+Group=centos
+ExecStart=/usr/bin/rsyslog-journald_linux
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
