@@ -74,12 +74,6 @@ func main() {
 			}
 
 			parts["_TRANSPORT"] = "syslog"
-			if !ok {
-				parts["_SOURCE_REALTIME_TIMESTAMP"] = strconv.FormatInt((time.Now().UnixNano() / 1000), 10)
-			} else {
-
-				parts["_SOURCE_REALTIME_TIMESTAMP"] = strconv.FormatInt(timestamp.UnixNano() / 1000, 10)
-			}
 
 			tag, ok := logParts["tag"].(string)
 			if ok {
@@ -92,7 +86,6 @@ func main() {
 
 			if *debug {
 				for k, v := range logParts {
-
 					fmt.Printf("K=%s, V=%v, \t\t Type=%T \n", k, v, v)
 				}
 			}
@@ -101,5 +94,4 @@ func main() {
 	}(channel)
 
 	server.Wait()
-
 }
