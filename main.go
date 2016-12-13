@@ -20,28 +20,80 @@ import (
 	"strconv"
 	"flag"
 	"runtime"
+	"net"
 )
 
 func main() {
 
-	channel := make(syslog.LogPartsChannel)
-	handler := syslog.NewChannelHandler(channel)
+	host := flag.String("host", "0.0.0.0", "hostname to listen on")
+	debug := flag.Bool("debug", false, "debug flag")
+
 
 	defaultPort := 514
 
 	if runtime.GOOS=="darwin" {
 		defaultPort = 5514
 	}
-
-	host := flag.String("host", "0.0.0.0", "hostname to listen on")
 	port := flag.Int("port", defaultPort, "port to listen on")
-	debug := flag.Bool("debug", false, "debug flag")
+	bufferSize := flag.Int("buffer-size", 1024, "size of buffered channel")
+	listenSyslog := flag.Bool("syslog", true, "listen to syslog")
+	listenJson := flag.Bool("json", true, "listen to JSON Logstash")
+	jsonPort := flag.Int("json-port", 5515, "port to listen on for JSON logstash")
+	jsonBufferSize := flag.Int("json-buffer-size", 1024, "max size of JSON message channel")
+
 	flag.Parse()
+
+	if *listenSyslog {
+		if *listenJson {
+			go runSyslogHandler(*host, *port, *bufferSize, *debug)
+		} else {
+			runSyslogHandler(*host, *port, *bufferSize, *debug)
+		}
+	}
+
+
+	if *listenJson {
+
+		runJsonHandler(*host, *jsonPort, *bufferSize, *debug, *jsonBufferSize)
+	}
+
+}
+
+
+func runJsonHandler(host string, port, bufferSize int, debug bool, jsonBufferSize int) {
+	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", host, port))
+
+	if err != nil {
+		panic(err)
+	}
+
+	conn, err := net.ListenUDP("udp",  addr)
+	if err != nil {
+		panic(err)
+	}
+
+	for {
+		var buf = make([]byte, jsonBufferSize)
+		n, err := conn.Read(buf[:])
+		if err != nil {
+			panic(err)
+		}
+		if !debug {
+			fmt.Printf("%s\n\n", string(buf[:n]));
+		}
+	}
+}
+
+func runSyslogHandler(host string, port, bufferSize int, debug bool) {
+
+	channel := make(syslog.LogPartsChannel, bufferSize)
+	handler := syslog.NewChannelHandler(channel)
+
 
 	server := syslog.NewServer()
 	server.SetFormat(syslog.Automatic)
 	server.SetHandler(handler)
-	server.ListenUDP(fmt.Sprintf("%s:%d", *host, *port))
+	server.ListenUDP(fmt.Sprintf("%s:%d", host, port))
 	server.Boot()
 
 	go func(channel syslog.LogPartsChannel) {
@@ -81,10 +133,9 @@ func main() {
 					parts["SYSLOG_IDENTIFIER"] = tag
 				}
 			}
-
 			journal.Send(message, journal.Priority(priority), parts)
 
-			if *debug {
+			if debug {
 				for k, v := range logParts {
 					fmt.Printf("K=%s, V=%v, \t\t Type=%T \n", k, v, v)
 				}
